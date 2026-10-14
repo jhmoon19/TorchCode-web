@@ -55,6 +55,8 @@ export default function Home() {
   const [taskDetails, setTaskDetails] = useState<TaskDetails | null>(null);
   const [code, setCode] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
   const [results, setResults] = useState<SubmissionResponse | null>(null);
   const [activeTab, setActiveTab] = useState<'problem' | 'results'>('problem');
   const [solvedTasks, setSolvedTasks] = useState<Record<string, boolean>>({});
@@ -150,6 +152,94 @@ export default function Home() {
     }
   };
 
+
+
+  const handleSaveNotebook = async () => {
+    if (!selectedTaskId || isSaving || isSubmitting) return;
+
+    setIsSaving(true);
+
+    try {
+      const response = await fetch(`${API_BASE}/save/${selectedTaskId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.saved) {
+        throw new Error(data.detail || "Failed to save notebook");
+      }
+
+      alert(
+        `Notebook saved successfully!\n\n` +
+        `Path: ${data.path}\n` +
+        `Tests: ${data.passed}/${data.total}`
+      );
+
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      alert(`Save failed: ${message}`);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+
+
+  const handlePublishNotebook = async () => {
+    if (!selectedTaskId || isPublishing || isSaving || isSubmitting) return;
+
+    const confirmed = window.confirm(
+      "Publish this solution to GitHub?\n\n" +
+      "The notebook will be saved, tested, committed, and pushed " +
+      "to your public repository."
+    );
+
+    if (!confirmed) return;
+
+    setIsPublishing(true);
+
+    try {
+      const response = await fetch(
+        `${API_BASE}/publish/${selectedTaskId}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok || !data.pushed) {
+        throw new Error(
+          typeof data.detail === "string"
+            ? data.detail
+            : "GitHub upload failed"
+        );
+      }
+
+      alert(
+        `Successfully pushed to GitHub!\n\n` +
+        `File: ${data.path}\n` +
+        `Tests: ${data.passed}/${data.total}\n` +
+        `Commit: ${data.commit}`
+      );
+
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : String(error);
+
+      alert(`GitHub publish failed:\n\n${message}`);
+    } finally {
+      setIsPublishing(false);
+    }
+  };
+
+
+
   const handleReset = () => {
     if (taskDetails && selectedTaskId) {
       localStorage.removeItem(`torchcode_code_${selectedTaskId}`);
@@ -243,6 +333,28 @@ export default function Home() {
             )}
             Run Tests
           </button>
+
+          <button
+            onClick={handleSaveNotebook}
+            disabled={isSaving || isSubmitting || !selectedTaskId}
+            className="flex items-center px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-500 disabled:opacity-50 transition-colors font-medium"
+          >
+            {isSaving ? "Saving..." : "Save Notebook"}
+          </button>
+
+          <button
+            onClick={handlePublishNotebook}
+            disabled={
+              isPublishing ||
+              isSaving ||
+              isSubmitting ||
+              !selectedTaskId
+            }
+            className="flex items-center px-4 py-2 rounded-md bg-purple-600 hover:bg-purple-500 disabled:opacity-50 transition-colors font-medium"
+          >
+            {isPublishing ? "Pushing..." : "Push to GitHub"}
+          </button>
+
         </div>
       </nav>
 
