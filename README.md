@@ -463,3 +463,74 @@ If this helped your interview prep, consider giving it a ⭐
 *Scan to support*
 
 </div>
+
+
+
+---
+
+## Personal Customization
+
+This fork extends the original TorchCode project with additional features for managing personal PyTorch practice solutions.
+
+### Added Features
+
+- **Save Notebook**: Export the current solution as a Jupyter Notebook (`.ipynb`).
+- **Test Results**: Preserve individual test results, execution times, and captured outputs.
+- **Push to GitHub**: Automatically commit and push accepted solutions to a personal GitHub repository.
+- **Numbered Notebooks**: Save solutions with their original problem numbers (e.g., `01_relu.ipynb`).
+
+### Local Setup (Windows)
+
+**Prerequisites**
+- Python 3
+- Node.js and npm
+- Git
+
+**1. Clone repositories**
+
+```bash
+cd ~
+git clone https://github.com/jhmoon19/TorchCode-web.git
+git clone https://github.com/jhmoon19/TorchCode.git
+```
+
+**2. Set up the Python environment**
+
+```bash
+cd ~/TorchCode-web
+python -m venv .venv
+source .venv/Scripts/activate
+python -m pip install -r api/requirements.txt
+```
+
+**3. Start the FastAPI backend**
+
+```bash
+python -m uvicorn api.main:app --port 8000 --reload
+```
+
+**4. Start the Next.js frontend (new terminal)**
+
+```bash
+cd ~/TorchCode-web/web
+npm install
+npm run dev
+```
+
+**5. Open the application**
+
+Visit http://localhost:3000.
+
+### GitHub Integration
+
+Accepted solutions are saved to the separate personal repository:
+
+https://github.com/jhmoon19/TorchCode
+
+The publishing endpoint uses the local `~/TorchCode` Git repository and existing Git authentication.
+
+**Note:** The publishing feature is intended for local use only. Do not expose the backend publicly without implementing authentication and additional security controls.
+
+### Acknowledgements
+
+Based on the original [TorchCode](https://github.com/duoan/TorchCode) project by duoan.
